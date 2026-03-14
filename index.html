@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Felsefe Adam Asmaca</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --glass-bg: rgba(255, 255, 255, 0.07);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --accent-neon: #00d2ff;
+            --accent-pink: #ff007f;
+            --text-main: #e0e0e0;
+            --success-glow: #2ecc71;
+            --error-glow: #e74c3c;
+        }
+
+        body {
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        /* Cam Efekti Kart */
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            width: 100%;
+            max-width: 700px;
+            padding: 30px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            margin: 0;
+            background: linear-gradient(to right, var(--accent-neon), var(--accent-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .header p { opacity: 0.6; font-size: 0.8rem; letter-spacing: 1px; }
+
+        /* Form Elemanları */
+        .setup-area { display: flex; flex-direction: column; gap: 15px; }
+
+        label { font-size: 0.85rem; color: var(--accent-neon); margin-left: 5px; text-transform: uppercase; }
+
+        select {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1rem;
+            outline: none;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        select:focus { border-color: var(--accent-neon); box-shadow: 0 0 15px rgba(0, 210, 255, 0.2); }
+        option { background: #1a1a2e; color: white; }
+
+        .btn {
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: 0.4s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+
+        .start-btn {
+            background: linear-gradient(45deg, var(--accent-neon), #0072ff);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
+        }
+
+        .start-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0, 210, 255, 0.5); }
+
+        /* Oyun Alanı */
+        #game-area { display: none; text-align: center; }
+
+        #word-display {
+            font-size: 2.2rem;
+            letter-spacing: 8px;
+            margin: 30px 0;
+            font-family: 'monospace';
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+            word-wrap: break-word;
+        }
+
+        #hint-display {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 15px;
+            border-radius: 12px;
+            border-left: 4px solid var(--accent-pink);
+            margin-bottom: 25px;
+            font-style: italic;
+            line-height: 1.5;
+            color: #ccc;
+        }
+
+        /* Klavye Tasarımı */
+        .keyboard-container { gap: 8px; margin-top: 25px; }
+        .keyboard-row { display: flex; justify-content: center; gap: 6px; margin-bottom: 6px; }
+        
+        .key {
+            flex: 1;
+            max-width: 42px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+        .key:hover { background: rgba(255, 255, 255, 0.15); transform: translateY(-2px); }
+        .key.correct { background: var(--success-glow) !important; color: white; box-shadow: 0 0 15px var(--success-glow); border: none; }
+        .key.wrong { background: var(--error-glow) !important; color: white; box-shadow: 0 0 15px var(--error-glow); border: none; }
+        .key.disabled { opacity: 0.2; pointer-events: none; }
+
+        /* SVG Çizim */
+        #hangman-svg { height: 160px; filter: drop-shadow(0 0 5px rgba(0, 210, 255, 0.2)); }
+        .draw-part { stroke: var(--text-main); stroke-width: 4; fill: none; stroke-linecap: round; display: none; }
+        .base-line { stroke: var(--glass-border); stroke-width: 3; }
+
+        #counter { font-size: 0.8rem; color: var(--accent-neon); margin-bottom: 10px; opacity: 0.8; }
+
+        .next-btn { background: var(--success-glow); color: white; display: none; width: 100%; }
+
+        @media (max-width: 480px) {
+            .card { padding: 20px; }
+            #word-display { font-size: 1.6rem; letter-spacing: 4px; }
+            .key { height: 42px; font-size: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="header">
+        <h1>ADAM ASMACA</h1>
+        <p>Veysel ÖZSALMAN</p>
+    </div>
+
+    <div id="setup-area" class="setup-area">
+        <div>
+            <label>Ünite Seçimi</label>
+            <select id="unit-select" onchange="updateOutcomes()">
+                <option value="">Ünite Seçiniz</option>
+                <option value="U1">ÜNİTE 1: FELSEFENİN DOĞASI</option>
+                <option value="U2">ÜNİTE 2: FELSEFE, MANTIK VE ARGÜMANTASYON</option>
+                <option value="U3">ÜNİTE 3: VARLIK FELSEFESİ</option>
+                <option value="U4">ÜNİTE 4: BİLGİ FELSEFESİ</option>
+                <option value="U5">ÜNİTE 5: AHLAK FELSEFESİ</option>
+                <option value="U6">ÜNİTE 6: ESTETİK VE SANAT FELSEFESİ</option>
+                <option value="U7">ÜNİTE 7: SİYASET FELSEFESİ</option>
+                <option value="U8">ÜNİTE 8: DİN FELSEFESİ</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Öğrenme Çıktısı</label>
+            <select id="outcome-select">
+                <option value=""> Önce Üniteyi Belirle </option>
+            </select>
+        </div>
+
+        <button class="btn start-btn" onclick="startGame()">OYUNU BAŞLAT</button>
+    </div>
+
+    <div id="game-area">
+        <div id="counter"></div>
+        <svg id="hangman-svg" viewBox="0 0 100 100">
+            <line x1="20" y1="90" x2="80" y2="90" class="base-line" />
+            <line x1="40" y1="90" x2="40" y2="10" class="base-line" />
+            <line x1="40" y1="10" x2="70" y2="10" class="base-line" />
+            <line x1="70" y1="10" x2="70" y2="25" class="base-line" />
+            <circle class="draw-part" id="p1" cx="70" cy="33" r="8" />
+            <line class="draw-part" id="p2" x1="70" y1="41" x2="70" y2="65" />
+            <line class="draw-part" id="p3" x1="70" y1="45" x2="55" y2="55" />
+            <line class="draw-part" id="p4" x1="70" y1="45" x2="85" y2="55" />
+            <line class="draw-part" id="p5" x1="70" y1="65" x2="55" y2="80" />
+            <line class="draw-part" id="p6" x1="70" y1="65" x2="85" y2="80" />
+        </svg>
+
+        <div id="hint-display"></div>
+        <div id="word-display"></div>
+        
+        <div class="keyboard-container" id="keyboard"></div>
+
+        <div id="status-msg" style="margin-top:20px; font-weight:bold; letter-spacing: 1px;"></div>
+        
+        <button id="next-question-btn" class="btn next-btn" onclick="loadNextQuestion()">SONRAKİ KAVRAM</button>
+        <button onclick="location.reload()" style="margin-top:20px; background:none; border:none; color:var(--accent-pink); cursor:pointer; text-decoration:none; font-size:0.8rem; font-weight:bold; opacity:0.7;">⟲ MENÜYE DÖN</button>
+    </div>
+</div>
+
+<script>
+const curriculumData = {
+    "U1": {
+        "FEL.10.1.1. Felsefenin anlamını ve gelişim sürecini sorgulayabilme": [
+            {w:"PHILOSOPHİA", h:"Yunancada bilgelik sevgisi anlamına gelen ve felsefe sözcüğünün kökenini oluşturan kavram."},
+            {w:"HİKMET", h:"Varlığın, bilginin ve değerin bütüncül bir şekilde kavranması, eşyanın hakikatine vakıf olma."},
+            {w:"ARKHE", h:"Antik Yunan felsefesinde evrenin temel kurucu unsuru, her şeyin kendisinden çıktığı ilk madde."},
+            {w:"FİLOZOF", h:"Bilgeliğe sahip olan değil, onu arayan, seven ve ona ulaşmaya çalışan düşünür."},
+            {w:"THALES", h:"Felsefe tarihinin ilk filozofu kabul edilen ve evrenin ana maddesini su olarak açıklayan düşünür."},
+            {w:"MİTOLOJİ", h:"Felsefe öncesi dönemde doğa olaylarını efsaneler ve tanrılar aracılığıyla açıklayan anlatı türü."},
+            {w:"LOGOS", h:"Herakleitos'ta evrenin düzenini sağlayan ilke, akıl ve söz anlamına gelen temel kavram."},
+            {w:"MERAK", h:"İnsanın bilme isteğini harekete geçiren, araştırmaya yönelten temel duygu durumu."},
+            {w:"PYTHAGORAS", h:"Philosophia terimini ilk kez kullanarak kendisine 'bilgeliğin dostu' diyen düşünür."},
+            {w:"ANADOLU", h:"Felsefi düşüncenin İyonya kentlerinde, özellikle Milet'te yeşerdiği coğrafi bölge."},
+            {w:"SOPHIA", h:"Bilgelik ve bilgi anlamına gelen, felsefe teriminin ikinci parçasını oluşturan Yunanca kelime."},
+            {w:"PROTAGORAS", h:"İnsan her şeyin ölçüsüdür diyerek hakikati göreceli kılan Sofist düşünür."},
+            {w:"TEORETİK", h:"Pratik fayda amacı gütmeyen, sadece bilmek için bilmeye dayalı kuramsal düşünme biçimi."},
+            {w:"KOZMOS", h:"Kargaşanın aksine, evrenin düzenli ve ölçülü bir bütün olduğunu ifade eden terim."},
+            {w:"DOXA", h:"Platon'da hakiki bilginin aksine, duyulara dayalı yanıltıcı sanı ve kişisel görüşler."},
+            {w:"SOKRATES", h:"Sorgulanmamış bir hayat yaşanmaya değmez diyerek felsefeyi insana yönelten düşünür."},
+            {w:"ANAXİMANDROS", h:"Arkhe'nin sınırsız ve belirsiz bir töz olan Apeiron olduğunu savunan filozof."},
+            {w:"İYONYA", h:"Ticaretin gelişmesi ve özgür düşünce ortamı sayesinde felsefenin doğduğu Batı Anadolu kıyıları."},
+            {w:"DEMOKRİTOS", h:"Evrenin sonsuz sayıda bölünemeyen atomlardan oluştuğunu savunan ilk materyalistlerden biri."},
+            {w:"HAYRET", h:"Düşüncenin alışılmış olanın dışına çıkıp varlığa şaşkınlıkla bakması durumu."}
+        ],
+        "FEL.10.1.2. Felsefenin özelliklerini, farklı alanlarla ilişkisini ve işlevini sorgulayabilme": [
+            {w:"REFLEKSİYON", h:"Düşüncenin kendi üzerine yönelmesi, yani düşünme hakkında tekrar düşünme süreci."},
+            {w:"TUTARLILIK", h:"Felsefi bir sistemdeki düşüncelerin birbiriyle çelişmemesi ve mantıksal uyum içinde olması."},
+            {w:"RASYONALİTE", h:"Felsefi düşüncenin duygulara veya inançlara değil, akla ve mantığa dayalı olması özelliği."},
+            {w:"EVRENSELLİK", h:"Felsefenin ele aldığı konuların tüm insanlığı ilgilendiren ortak meseleler olması."},
+            {w:"SORGULAMA", h:"Bir bilgiyi olduğu gibi kabul etmek yerine nedenlerini ve temellerini araştırma tavrı."},
+            {w:"SİSTEMLİ", h:"Felsefi bilginin rastgele değil, düzenli ve birbiriyle bağlantılı bir bütünlük arz etmesi."},
+            {w:"ÖZNEL", h:"Felsefi görüşlerin her filozofun kendi bakış açısını ve kişisel yorumunu yansıtması."},
+            {w:"ANALİTİK", h:"Kavramları ve problemleri parçalarına ayırarak çözümlemeye çalışan düşünme yöntemi."},
+            {w:"TEMELLENDİRME", h:"Bir iddiayı mantıksal gerekçeler ve kanıtlar sunarak destekleme çabası."},
+            {w:"ELEŞTİREL", h:"Her türlü bilgiyi akıl süzgecinden geçiren, ön yargılardan uzak duran felsefi tavır."},
+            {w:"BÜTÜNCÜL", h:"Felsefenin varlığı parçalayarak değil, her yönüyle bir bütün olarak ele alma özelliği."},
+            {w:"YIĞILIMLI", h:"Felsefi bilginin bilim gibi ilerlemek yerine farklı görüşlerin üst üste birikmesi durumu."},
+            {w:"KÜMÜLATİF", h:"Felsefede soruların cevaplardan daha önemli olup bilgilerin tarihsel süreçte birikmesi."},
+            {w:"NORMATİF", h:"İnsan eylemlerini ve değerlerini kural koyucu bir şekilde inceleyen felsefi yaklaşım."},
+            {w:"ŞÜPHE", h:"Kesin bilgiye ulaşmak için bir araç veya yöntem olarak kullanılan kuşku duyma hali."},
+            {w:"PROBLEM", h:"Felsefenin üzerine kafa yorduğu, kesin çözümü olmayan temel sorunsallar."},
+            {w:"EVRENSEL", h:"Zaman ve mekandan bağımsız olarak tüm insanlık için geçerli olan değerleri arama."},
+            {w:"HÜMANİZM", h:"İnsanı felsefenin merkezine alan ve insan değerini ön plana çıkaran yaklaşım."},
+            {w:"DİYALEKTİK", h:"Zıt fikirlerin çarpışmasından yeni sentezlere ulaşmayı amaçlayan tartışma yöntemi."}
+        ]
+    },
+    "U2": {
+        "FEL.10.2.1. Mantık ve argümantasyonda kullanılan temel kavramları yorumlayabilme": [
+            {w:"ARGÜMAN", h:"Bir görüşü desteklemek amacıyla sunulan öncüller ve bu öncüllerden çıkarılan sonuç."},
+            {w:"TÜMDENGELİM", h:"Genel ilkelerden hareket ederek özele veya sonuca ulaşan zorunlu akıl yürütme."},
+            {w:"TÜMEVARIM", h:"Tek tek gözlemlerden yola çıkarak genel bir sonuca veya yasaya ulaşma yöntemi."},
+            {w:"ANALOJİ", h:"İki farklı şey arasındaki benzerliğe dayanarak birisi için geçerli olanı diğeri için de varsayma."},
+            {w:"ÖNCÜL", h:"Bir argümanda sonuca dayanak yapılan, doğruluğu kabul edilen yargı cümlesi."},
+            {w:"GEÇERLİLİK", h:"Öncüllerin doğru kabul edildiği durumda sonucun mantıksal olarak zorunlu çıkması."},
+            {w:"SAFSATA", h:"Görünüşte doğru ama özünde hatalı olan, yanıltıcı akıl yürütme veya geçersiz argüman."},
+            {w:"ÖNERME", h:"Doğru veya yanlış bir yargı bildiren, soru veya emir içermeyen cümle türü."},
+            {w:"ÇELİŞKİ", h:"Bir öznenin aynı anda ve aynı koşullarda hem kendisi hem de başkası olması imkansızlığı."},
+            {w:"MUHAKEME", h:"Zihnin eldeki bilgilerden hareketle yeni bir bilgiye ulaşma, akıl yürütme süreci."},
+            {w:"ÇELİŞMEZLİK", h:"Bir şeyin aynı anda hem doğru hem yanlış olamayacağını belirten mantık ileki."},
+            {w:"ÜÇÜNCÜ HALİN İMKANSIZLIĞI", h:"Bir önermenin ya doğru ya da yanlış olduğunu, ikisi arası bir durumun olamayacağını belirten ilke."},
+            {w:"ÖZDEŞLİK", h:"Bir şey ne ise odur (A, A'dır) şeklinde ifade edilen temel mantık ilkesi."},
+            {w:"TUTARSIZLIK", h:"Öne sürülen düşüncelerin birbirini yalanlaması veya aralarında çelişki bulunması."},
+            {w:"DOĞRULUK-DEĞERİ", h:"Bir önermenin gerçeklikle uyuşup uyuşmamasına göre aldığı 'doğru' veya 'yanlış' sıfatı."},
+            {w:"AKIL YÜRÜTME", h:"En az iki önermeden yola çıkarak bir sonuç çıkarma işlemi."},
+            {w:"PARADOKS", h:"Doğru gibi görünen bir öncülden hareketle içinden çıkılamaz, çelişkili sonuçlara varma durumu."},
+            {w:"KAVRAM", h:"Nesnelerin zihindeki soyut tasarımı ve genel temsilcisi."},
+            {w:"TANIM", h:"Bir kavramın içeriğini ve sınırlarını belirleme, 'bu nedir?' sorusuna cevap verme işlemi."},
+            {w:"SENTAKS", h:"Argümanların yapısal düzgünlüğünü inceleyen, söz dizimi ve biçimsel mantıkla ilgili alan."}
+        ]
+    },
+    "U3": {
+        "FEL.10.3.1. Varlık felsefesinin konusunu, kavramlarını ve problemlerini muhakeme edebilme": [
+            {w:"ONTOLOJİ", h:"Varlığın ne olduğunu, kökenini ve yapısını inceleyen temel felsefe disiplini."},
+            {w:"METAFİZİK", h:"Doğaötesi konuları, varlığın görünmeyen nedenlerini inceleyen felsefe alanı."},
+            {w:"REALİZM", h:"Dış dünyanın ve nesnelerin insan zihninden bağımsız olarak var olduğunu savunan görüş."},
+            {w:"NİHİLİZM", h:"Hiççilik; varlığın gerçekte olmadığını veya bilinemeyeceğini savunan yaklaşım."},
+            {w:"İDEALİZM", h:"Varlığın temelinde düşünce, ruh veya akıl gibi maddi olmayan unsurların olduğunu savunan akım."},
+            {w:"MATERYALİZM", h:"Varlığın özünün madde olduğunu ve her şeyin maddeden türediğini savunan görüş."},
+            {w:"DÜALİZM", h:"Varlığı ruh ve madde (zihin ve beden) olarak iki ayrı tözden oluşan yapı olarak gören ikicilik."},
+            {w:"FENOMENOLOJİ", h:"Varlığın özüne ulaşmak için paranteze alma yöntemini kullanan özbilim."},
+            {w:"OLUŞ", h:"Varlığın durağan olmadığını, sürekli bir değişim ve akış içinde olduğunu savunan anlayış."},
+            {w:"TÖZ", h:"Değişimlerin altında yatan, var olmak için başka bir şeye ihtiyaç duymayan kalıcı öz."},
+            {w:"VAROLUŞÇULUK", h:"İnsanın önce var olduğunu, kendi özünü ise yaptığı seçimlerle sonradan oluşturduğunu savunan akım."},
+            {w:"ARKHE", h:"İlk filozofların peşinde olduğu, evrenin ana maddesi ve ilk ilkesi."},
+            {w:"PANTEİZM", h:"Evren ile Tanrı'nın bir ve aynı olduğunu, doğanın Tanrı'nın görünümü olduğunu savunan görüş."},
+            {w:"İDEA", h:"Platon'a göre gerçek varlıkların bulunduğu, değişmeyen ve akılla kavranan asıl dünya."},
+            {w:"MEKANİZM", h:"Evreni dev bir makine gibi gören ve her olayı neden-sonuç ilişkisiyle açıklayan görüş."},
+            {w:"VİTALİZM", h:"Varlığı açıklarken maddeye ek olarak bir 'yaşam enerjisi' veya 'canlılık' ilkesi arayan görüş."},
+            {w:"SPRİTÜALİZM", h:"Varlığın temelinde ruhsal bir ilke olduğunu savunan tinselci yaklaşım."},
+            {w:"MONİZM", h:"Varlığın tek bir temel ilkeden (sadece madde veya sadece ruh) oluştuğunu savunan tekçilik."},
+            {w:"PLÜRALİZM", h:"Varlığın temelinde birden çok (ikiden fazla) töz olduğunu savunan çokçuluk."},
+            {w:"ÖZ", h:"Bir şeyi o şey yapan, o şeyden ayrılması imkansız olan temel nitelik."}
+        ]
+    },
+    "U4": {
+        "FEL.10.4.1. Bilgi felsefesinin konusunu, kavramlarını ve problemlerini muhakeme edebilme": [
+            {w:"EPİSTEMOLOJİ", h:"Bilginin kaynağını, sınırlarını ve doğruluğunu inceleyen felsefe dalı."},
+            {w:"SEPTİSİZM", h:"İnsan zihninin kesin bir hakikate ulaşamayacağını savunan kuşkuculuk akımı."},
+            {w:"RASYONALİZM", h:"Doğru bilginin kaynağının akıl olduğunu ve bilgilerin doğuştan geldiğini savunan akılcılık."},
+            {w:"EMPİRİZM", h:"Bilginin kaynağının sadece deney ve duyumlar olduğunu savunan deneyimcilik."},
+            {w:"KRİTİSİZM", h:"Kant'ın geliştirdiği, hem aklı hem de deneyi bilgi sürecinde birleştiren eleştirel felsefe."},
+            {w:"POZİTİVİZM", h:"Sadece olgulara dayalı olan, metafiziği reddeden bilimsel ve olgucu yaklaşım."},
+            {w:"PRAGMATİZM", h:"Bir bilginin doğruluğunu onun sağladığı pratik fayda ve başarıya dayandıran görüş."},
+            {w:"ENTÜİSYONİZM", h:"Hakikate akıl veya deneyle değil, doğrudan ve aracısız bir sezgiyle ulaşılabileceğini savunan akım."},
+            {w:"FENOMEN", h:"Zihin tarafından algılanan, duyularla kavranan görünüş veya olay."},
+            {w:"DOĞRULUK", h:"Bir düşüncenin veya önermenin ifade ettiği nesneyle, yani gerçeklikle uyuşması durumu."},
+            {w:"GERÇEKLİK", h:"İnsan zihninden bağımsız olarak dış dünyada bulunan somut var olma durumu."},
+            {w:"SUJE", h:"Bilgi sürecinde bilen, yönelen ve kavrayan özne, yani insan zihni."},
+            {w:"OBJE", h:"Bilgi sürecinde bilinen, yönelinen nesne veya incelenen konu."},
+            {w:"TEMELLENDİRME", h:"Bilginin doğruluğunu kanıtlar ve akılsal dayanaklar göstererek ortaya koyma."},
+            {w:"TABULA RASA", h:"John Locke'a göre zihnin doğuştan boş bir levha olduğu ve deneyle dolduğu görüşü."},
+            {w:"APRIORI", h:"Deneyden önce gelen, sadece akla dayalı olan ve deney gerektirmeyen bilgi."},
+            {w:"APOSTERIORI", h:"Ancak deney ve gözlem yoluyla elde edilebilen, deneyden sonra gelen bilgi."},
+            {w:"TÜMEL UZLAŞIM", h:"Bir bilginin doğruluğu için herkesin veya çoğunluğun o konuda onay vermesini ölçüt alan görüş."},
+            {w:"APAÇIKLIK", h:"Bilginin hem kuşku duyulmayacak kadar net (açık) hem de diğerlerinden ayırt edilebilir (seçik) olması."},
+            {w:"KANT", h:"'Algısız kavramlar boş, kavramsız algılar kördür' diyerek kritisizmi kuran filozof."}
+        ]
+    },
+    "U5": {
+        "FEL.10.5.1. Ahlak felsefesinin konusunu, kavramlarını ve problemlerini muhakeme edebilme": [
+            {w:"ETİK", h:"Ahlaki eylemlerin temelini, iyi ve kötü kavramlarını inceleyen felsefe disiplini."},
+            {w:"ERDEM", h:"İnsanın ahlaki bakımdan her zaman iyiye yönelmesini sağlayan ruhsal yetkinlik."},
+            {w:"ÖZGÜRLÜK", h:"İnsanın kendi iradesiyle, dış baskı olmadan seçim yapabilme gücü."},
+            {w:"SORUMLULUK", h:"Kişinin özgürce seçtiği eylemlerinin sonuçlarını üstlenmesi durumu."},
+            {w:"VİCDAN", h:"İnsanın kendi eylemlerini yargıladığı içsel mahkeme veya ahlaki bilinç."},
+            {w:"ÖDEV", h:"Kant'a göre bir eylemi sadece yasaya saygıdan dolayı, çıkar gözetmeksizin yapma gerekliliği."},
+            {w:"HEDONİZM", h:"Hayatın amacının haz almak olduğunu savunan hazcılık akımı."},
+            {w:"İYİ", h:"İnsanın yapması gereken, değerli ve toplumca onaylanan ahlaki eylem."},
+            {w:"KÖTÜ", h:"Ahlaki yasaya aykırı, yapılması istenmeyen ve olumsuz eylem."},
+            {w:"EVRENSEL-AHLAK", h:"Tüm insanlar için her zaman ve her yerde geçerli olan ahlak yasalarının varlığı iddiası."},
+            {w:"BENCİLLİK", h:"İnsanın her eylemini kendi çıkarına göre düzenlediğini savunan egoizm akımı."},
+            {w:"FAYDACILIK", h:"En çok sayıda insana en büyük mutluluğu sağlayan eylemin iyi olduğunu savunan akım."},
+            {w:"DETERMİNİZM", h:"İnsanın eylemlerinin önceden belirlendiğini ve özgür olmadığını savunan görüş."},
+            {w:"İNDETERMİNİZM", h:"İnsanın eylemlerinde tamamen özgür olduğunu ve kararlarını kendisinin verdiğini savunan görüş."},
+            {w:"OTODETERMİNİZM", h:"İnsanın ahlaki özerkliğini kendi bilgisi ve kişiliğiyle kazandığını savunan uzlaşmacı görüş."},
+            {w:"ANARŞİZM", h:"İnsanın özgürlüğünü kısıtlayan devlet, din ve ahlak gibi tüm dış otoriteleri reddeden görüş."},
+            {w:"NİHİLİZM", h:"Nietzsche'de mevcut ahlaki değerleri reddeden ve 'üst insan' kavramına yönelen yaklaşım."},
+            {w:"ERDEM-ETİĞİ", h:"Aristoteles'e göre mutluluğun ancak ölçülü bir hayat ve karakter eğitimiyle kazanılacağı görüşü."},
+            {w:"AMOR-FATİ", h:"Kaderini sevmek; olan biten her şeyi kabullenerek ahlaki bir duruş sergileme hali."},
+            {w:"ALTURİZM", h:"Başkalarının yararını gözetme, özgecilik; bencilliğin karşıtı olan ahlaki tutum."}
+        ]
+    },
+    "U6": {
+        "FEL.10.6.1. Estetik ve sanat felsefesinin konusunu, kavramlarını ve problemlerini muhakeme edebilme": [
+            {w:"ESTETİK", h:"Hem doğadaki hem de sanattaki güzeli inceleyen geniş kapsamlı felsefe dalı."},
+            {w:"MİMESİS", h:"Sanatı doğanın ve gerçekliğin bir yansıması veya taklidi olarak gören kuram."},
+            {w:"KATHARSİS", h:"Sanat yoluyla, özellikle trajedi izleyerek ruhun olumsuz duygulardan arınması durumu."},
+            {w:"GÜZELLİK", h:"Objede uyum, oran ve simetri gibi özelliklerle ortaya çıkan estetik değer."},
+            {w:"YÜCE", h:"İnsanı hayran bırakan, sınırsızlık ve güç duygusu uyandıran görkemli varlıklar için kullanılan terim."},
+            {w:"YARATIM", h:"Sanatı sanatçının hayal gücü ve duygularını dışa vurduğu özgün bir süreç olarak gören kuram."},
+            {w:"ALIMLAYICI", h:"Sanat eserini izleyen, dinleyen veya okuyan, ona estetik bir değer yükleyen kişi."},
+            {w:"OYUN", h:"Schiller'e göre sanatın özgürleştirici yapısını ve fayda gütmeyen karakterini açıklayan kavram."},
+            {w:"HOŞ", h:"Duyulara hitap eden, geçici zevk veren ama estetik değerle aynı olmayan duygu."},
+            {w:"ÖZGÜNLÜK", h:"Bir sanat eserinin benzerlerinden farklı, tek ve yaratıcısına has olması durumu."},
+            {w:"ESTETİK-YARGI", h:"Bir esere karşı hissedilen 'güzeldir' veya 'çirkindir' şeklindeki öznel değerlendirme."},
+            {w:"ZANAAT", h:"Fayda amacı güden, ustalık ve pratik kullanım için yapılan üretim faaliyeti."},
+            {w:"ESTETİK-HAZ", h:"Bir sanat eserini karşılıksız bir ilgiyle izlemekten doğan tinsel keyif."},
+            {w:"İDEALLEŞTİRME", h:"Sanatçının doğadaki eksiklikleri gidererek varlığı kusursuz bir biçimde sunması."},
+            {w:"FORM", h:"Sanat eserinin dış yapısı, biçimi ve unsurlarının birbirleriyle olan uyumlu düzeni."},
+            {w:"TASARIM", h:"Sanatçının eserini oluşturmadan önce zihninde kurduğu plan ve kurgu."},
+            {w:"TRAJİK", h:"İnsanın aşamadığı çelişkileri ve acı dolu sonu konu alan estetik kategori."},
+            {w:"ESTETİK-TAVIR", h:"Bir nesneye kullanım amacı gütmeden, sadece güzelliğini görmek için bakma hali."},
+            {w:"ÜSLUP", h:"Bir sanatçının kendine has anlatım biçimi, tarzı veya tekniği."},
+            {w:"SOYUT", h:"Doğadaki nesneleri doğrudan betimlemeyen, çizgi ve renklerle düşünsel bir dünya kuran sanat anlayışı."}
+        ]
+    },
+    "U7": {
+        "FEL.10.7.1. Siyaset felsefesinin konusunu, kavramlarını ve problemlerini muhakeme edebilme": [
+            {w:"MEŞRUİYET", h:"İktidarın yönetme gücünü yasalara ve halkın rızasına dayandırması durumu."},
+            {w:"EGEMENLİK", h:"Devletin belli bir toprak parçası üzerinde sahip olduğu en üstün ve mutlak güç."},
+            {w:"ÜTOPYA", h:"Henüz var olmayan ancak hayal edilen ideal ve kusursuz toplum tasarımı."},
+            {w:"DİSTOPYA", h:"Gelecekte olabilecek baskıcı ve korkutucu toplum modellerini anlatan karanlık kurgu."},
+            {w:"BÜROKRASI", h:"Devlet işlerini yürüten, uzmanlaşmış ve hiyerarşik bir düzene sahip memurlar topluluğu."},
+            {w:"ADALET", h:"Hakların gözetilmesi ve herkese hak ettiğinin verilmesi ilkesi."},
+            {w:"LAİKLİK", h:"Din ve devlet işlerinin birbirinden ayrılması, devletin inançlar karşısında tarafsız olması."},
+            {w:"İKTİDAR", h:"Toplumu yönetme, yönlendirme ve kararlarını uygulama gücüne sahip otorite."},
+            {w:"DEMOKRASİ", h:"Egemenliğin halka ait olduğu, katılım ve özgürlük temelli yönetim biçimi."},
+            {w:"HAK", h:"Hukuk düzeninin bireylere tanıdığı yetki ve korunması gereken temel çıkarlar."},
+            {w:"SİVİL TOPLUM", h:"Devlet otoritesi dışında, vatandaşların gönüllü olarak kurduğu örgütlü alan."},
+            {w:"SOSYAL SÖZLEŞME", h:"İnsanların doğa durumundan toplum düzenine geçmek için yaptıkları varsayılan anlaşma."},
+            {w:"HUKUK DEVLETİ", h:"Tüm vatandaşların ve yönetimin yasalar önünde eşit olduğu devlet yapısı."},
+            {w:"TEMEL HAKLAR", h:"İnsanın sadece insan olduğu için sahip olduğu vazgeçilemez ve devredilemez haklar."},
+            {w:"MONARŞİ", h:"Yönetim yetkisinin tek bir kişide ve genellikle soy yoluyla toplandığı sistem."},
+            {w:"LİBERALİZM", h:"Bireysel özgürlüğü ve serbest piyasayı temel alan siyasi ve ekonomik öğreti."},
+            {w:"SOSYALİZM", h:"Toplumsal eşitliği ve üretimin kolektif mülkiyetini savunan siyasi akım."},
+            {w:"TEOKRASİ", h:"Devletin dini kurallara ve din adamlarına göre yönetildiği sistem."},
+            {w:"GÜÇLER AYRILIĞI", h:"Yasama, yürütme ve yargı yetkilerinin farklı organlara verilmesi ilkesi."},
+            {w:"KAMU YARARI", h:"Bireysel çıkarların üstünde tutulan, tüm toplumun ortak iyiliğini hedefleyen amaç."}
+        ]
+    },
+    "U8": {
+        "FEL.10.8.1. Din felsefesinin konusunu, kavramlarını ve problemlerini muhakeme edebilme": [
+            {w:"TEİZM", h:"Evreni yaratan, yöneten ve insanlara müdahale eden bir Tanrı inancı."},
+            {w:"DEİZM", h:"Tanrı'nın evreni yarattığını ancak sonrasında müdahale etmediğini savunan akılcı inanç."},
+            {w:"PANTEİZM", h:"Tanrı ve evrenin bir olduğunu, doğanın dışında bir Tanrı olmadığını savunan tüm-tanrıcılık."},
+            {w:"ATEİZM", h:"Tanrı'nın varlığını reddeden ve doğaüstü bir güce inanmayan görüş."},
+            {w:"AGNOSTİSİZM", h:"Tanrı'nın varlığının veya yokluğunun bilinemeyeceğini savunan bilinmezcilik."},
+            {w:"MONOTEİZM", h:"Tek bir Tanrı'nın varlığına inanılan dinî ve felsefi sistem."},
+            {w:"POLİTEİZM", h:"Birden çok Tanrı'nın varlığına inanılan inanç sistemi."},
+            {w:"VAHİY", h:"Tanrı'nın emir ve yasaklarını peygamberler aracılığıyla insanlara bildirmesi."},
+            {w:"TEODİSE", h:"Kötülük problemi karşısında Tanrı'nın adaletini ve iyiliğini savunma çabası."},
+            {w:"İMAN", h:"Bir dinin öğretilerine ve Tanrı'nın varlığına duyulan güçlü gönülden bağlılık."},
+            {w:"FİDEİZM", h:"Dini hakikatlere akılla değil, sadece sarsılmaz bir inançla ulaşılabileceğini savunan görüş."},
+            {w:"KUTSAL", h:"Din tarafından dokunulmaz kabul edilen, saygı duyulan ve yüce tutulan değerler."},
+            {w:"ONTOLOJİK-KANIT", h:"Tanrı'nın varlığını sadece 'en mükemmel varlık' kavramından yola çıkarak ispatlama çabası."},
+            {w:"KOZMOLOJİK-KANIT", h:"Evrendeki her olayın bir nedeni olduğu ilkesinden hareketle bir ilk nedene (Tanrı) ulaşma."},
+            {w:"TELEOLOJİK-KANIT", h:"Evrendeki düzen ve amaçlılıktan yola çıkarak akıllı bir tasarımcıyı ispatlayan delil."},
+            {w:"ESKATOLOJİ", h:"Ölümden sonraki hayatı, dünyanın sonunu ve ahiret inancını inceleyen felsefi alan."},
+            {w:"DİN FELSEFESİ", h:"Dini kavramları, inançları ve problemleri akılcı bir süzgeçten geçiren disiplin."},
+            {w:"TEOLOJİ", h:"Belli bir dinin dogmalarını temel alarak o dini açıklamaya çalışan inanç bilimi."},
+            {w:"PANENTEİZM", h:"Her şeyin Tanrı'nın içinde olduğunu ama Tanrı'nın evrenden daha büyük olduğunu savunan görüş."},
+            {w:"MUCİZE", h:"Doğa yasalarını aşan, olağanüstü ve ilahi kaynaklı olduğuna inanılan olaylar."}
+        ]
+    }
+};
+
+let currentPool = [];
+let currentIndex = 0;
+let selectedW = "", selectedH = "", guessedArr = [], errCount = 0;
+const limbs = ["p1", "p2", "p3", "p4", "p5", "p6"];
+
+const trQWERTY = [
+    ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "Ğ", "Ü"],
+    ["A", "S", "D", "F", "G", "H", "J", "K", "L", "Ş", "İ"],
+    ["Z", "X", "C", "V", "B", "N", "M", "Ö", "Ç"]
+];
+
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function updateOutcomes() {
+    const unit = document.getElementById('unit-select').value;
+    const outBox = document.getElementById('outcome-select');
+    outBox.innerHTML = '<option value="">-- Öğrenme Çıktısı Seçin --</option>';
+    if(unit && curriculumData[unit]) {
+        Object.keys(curriculumData[unit]).forEach(o => {
+            const el = document.createElement('option');
+            el.value = o; el.textContent = o;
+            outBox.appendChild(el);
+        });
+    }
+}
+
+function startGame() {
+    const u = document.getElementById('unit-select').value;
+    const o = document.getElementById('outcome-select').value;
+    if(!u || !o) return;
+
+    currentPool = shuffle([...curriculumData[u][o]]);
+    currentIndex = 0;
+    
+    document.getElementById('setup-area').style.display = 'none';
+    document.getElementById('game-area').style.display = 'block';
+    loadNextQuestion();
+}
+
+function loadNextQuestion() {
+    if(currentIndex >= currentPool.length) {
+        document.getElementById('status-msg').innerHTML = "<span style='color:var(--accent-neon)'>TEBRİKLER! TÜM KAVRAMLARI KEŞFETTİNİZ.</span>";
+        document.getElementById('next-question-btn').style.display = 'none';
+        return;
+    }
+    const item = currentPool[currentIndex];
+    selectedW = item.w.toUpperCase();
+    selectedH = item.h;
+    
+    // BOŞLUKLARI VE TİRELERİ OTOMATİK AÇIYORUZ
+    guessedArr = [" ", "-", ".", "/"]; 
+    
+    errCount = 0;
+
+    document.getElementById('counter').innerText = `KAVRAM: ${currentIndex + 1} / ${currentPool.length}`;
+    document.getElementById('hint-display').innerText = selectedH;
+    document.getElementById('status-msg').innerText = "";
+    document.getElementById('next-question-btn').style.display = 'none';
+
+    limbs.forEach(id => document.getElementById(id).style.display = 'none');
+    renderTRKeyboard();
+    updateWord();
+}
+
+function renderTRKeyboard() {
+    const kbContainer = document.getElementById('keyboard');
+    kbContainer.innerHTML = "";
+    
+    trQWERTY.forEach(row => {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'keyboard-row';
+        row.forEach(char => {
+            const keyDiv = document.createElement('div');
+            keyDiv.className = 'key';
+            keyDiv.innerText = char;
+            keyDiv.onclick = () => handleInput(char, keyDiv);
+            rowDiv.appendChild(keyDiv);
+        });
+        kbContainer.appendChild(rowDiv);
+    });
+}
+
+function handleInput(l, el) {
+    if(el.classList.contains('disabled')) return;
+    el.classList.add('disabled');
+
+    if(selectedW.includes(l)) {
+        guessedArr.push(l);
+        el.classList.add('correct');
+    } else {
+        el.classList.add('wrong');
+        if(errCount < limbs.length) {
+            document.getElementById(limbs[errCount]).style.display = 'block';
+            errCount++;
+        }
+    }
+    updateWord();
+    checkEnd();
+}
+
+function updateWord() {
+    const displayElement = document.getElementById('word-display');
+    const wordCharacters = selectedW.split("");
+    
+    const htmlOutput = wordCharacters.map(char => {
+        if (char === " ") {
+            return '<span style="display:inline-block; width:15px;"> </span>'; 
+        } else if (guessedArr.includes(char)) {
+            return char; 
+        } else {
+            return "_"; 
+        }
+    }).join(" ");
+    
+    displayElement.innerHTML = htmlOutput;
+}
+
+function checkEnd() {
+    const currentDisplay = selectedW.split("").map(l => (guessedArr.includes(l) ? l : "_")).join("");
+    
+    if(currentDisplay === selectedW) {
+        document.getElementById('status-msg').innerHTML = "<span style='color:var(--success-glow)'>MÜKEMMEL! DOĞRU CEVAP.</span>";
+        currentIndex++;
+        document.getElementById('next-question-btn').style.display = 'block';
+        lockKb();
+    } else if(errCount >= limbs.length) {
+        document.getElementById('status-msg').innerHTML = "<span style='color:var(--error-glow)'>CEVAP: " + selectedW + "</span>";
+        currentIndex++;
+        document.getElementById('next-question-btn').style.display = 'block';
+        lockKb();
+    }
+}
+
+function lockKb() {
+    document.querySelectorAll('.key').forEach(k => k.classList.add('disabled'));
+}
+</script>
+</body>
+</html>

@@ -175,6 +175,11 @@
 </head>
 <body>
 
+<audio id="ses-baslangic" src="baslangic.mp3"></audio>
+<audio id="ses-dogru" src="dogru.mp3"></audio>
+<audio id="ses-yanlis" src="yanlis.mp3"></audio>
+<audio id="ses-kayip" src="kaybettin.mp3"></audio>
+
 <div class="card">
     <div class="header">
         <h1>ADAM ASMACA</h1>
@@ -411,7 +416,7 @@ const curriculumData = {
             {w:"ADALET", h:"Hakların gözetilmesi ve herkese hak ettiğinin verilmesi ilkesi."},
             {w:"LAİKLİK", h:"Din ve devlet işlerinin birbirinden ayrılması, devletin inançlar karşısında tarafsız olması."},
             {w:"İKTİDAR", h:"Toplumu yönetme, yönlendirme ve kararlarını uygulama gücüne sahip otorite."},
-            {w:"DEMOKRASİ", h:"Egemenliğin halka ait olduğu, katılım ve özgürlük temelli yönetim biçimi."},
+            {w:"DEMOKRASI", h:"Egemenliğin halka ait olduğu, katılım ve özgürlük temelli yönetim biçimi."},
             {w:"HAK", h:"Hukuk düzeninin bireylere tanıdığı yetki ve korunması gereken temel çıkarlar."},
             {w:"SİVİL TOPLUM", h:"Devlet otoritesi dışında, vatandaşların gönüllü olarak kurduğu örgütlü alan."},
             {w:"SOSYAL SÖZLEŞME", h:"İnsanların doğa durumundan toplum düzenine geçmek için yaptıkları varsayılan anlaşma."},
@@ -488,6 +493,9 @@ function startGame() {
     const o = document.getElementById('outcome-select').value;
     if(!u || !o) return;
 
+    // Başlangıç Sesi
+    document.getElementById('ses-baslangic').play();
+
     currentPool = shuffle([...curriculumData[u][o]]);
     currentIndex = 0;
     
@@ -506,7 +514,6 @@ function loadNextQuestion() {
     selectedW = item.w.toUpperCase();
     selectedH = item.h;
     
-    // BOŞLUKLARI VE TİRELERİ OTOMATİK AÇIYORUZ
     guessedArr = [" ", "-", ".", "/"]; 
     
     errCount = 0;
@@ -544,9 +551,13 @@ function handleInput(l, el) {
     el.classList.add('disabled');
 
     if(selectedW.includes(l)) {
+        // Doğru Sesi
+        document.getElementById('ses-dogru').play();
         guessedArr.push(l);
         el.classList.add('correct');
     } else {
+        // Yanlış Sesi
+        document.getElementById('ses-yanlis').play();
         el.classList.add('wrong');
         if(errCount < limbs.length) {
             document.getElementById(limbs[errCount]).style.display = 'block';
@@ -583,6 +594,8 @@ function checkEnd() {
         document.getElementById('next-question-btn').style.display = 'block';
         lockKb();
     } else if(errCount >= limbs.length) {
+        // Kaybetme Sesi
+        document.getElementById('ses-kayip').play();
         document.getElementById('status-msg').innerHTML = "<span style='color:var(--error-glow)'>CEVAP: " + selectedW + "</span>";
         currentIndex++;
         document.getElementById('next-question-btn').style.display = 'block';
